@@ -1,4 +1,5 @@
 from .cleverutils import timer
+from .clevergui import start_gui, button_menu, text_input
 
 class Login_to:
     """
@@ -6,8 +7,8 @@ class Login_to:
     websites.  Each receives a (CleverSession) object as its argument, typically comprising:
 
     .browser : a selenium webbrowswer object that has already been initialised
-    .username : a username, typically derived from CleverSession and keyring
-    .password : a password, typically a CleverSesssion @property based on keyring
+    .username : typically derived from CleverSession and keyring
+    .password : typically a CleverSession @property based on keyring
     """
     @staticmethod
     @timer
@@ -52,4 +53,3 @@ class Login_to:
         while browser.current_url != 'https://www.satchelone.com/dashboard':
             continue
         print("\n ✓  OK we're in!\n")
-

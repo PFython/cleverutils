@@ -3,7 +3,7 @@ A collection of commonly high level functions based on PysSimpleGUI and tailored
 """
 import PySimpleGUI as sg
 
-sg_options = {"title": "CleverSession", "keep_on_top": True}
+sg_options = {"title": "CleverUtils", "keep_on_top": True}
 
 def start_gui(*args, **kwargs):
     """
@@ -18,7 +18,9 @@ def start_gui(*args, **kwargs):
         options = {"do_not_reroute_stdout": False, "keep_on_top": True}
         print(**options)
         print("Rerouting stdout/stderr to PySimpleGUI Debug Window...")
-    sg.change_look_and_feel("DarkAmber")
+    # sg.change_look_and_feel("DarkAmber")
+    # sg.change_look_and_feel("DarkGreen")
+    sg.change_look_and_feel("Python")
     # Redirect stdout and stderr to Debug Window:
     sg.set_options(
         message_box_line_width=80,
@@ -39,7 +41,7 @@ def button_menu(choices: iter, prompt=None, **kwargs):
             [[sg.Button(button_text=url, size=(width,1), font="calibri 12")]
                 for url in choices])
     layout.extend([[sg.Text("You can use Tab & Space to navigate", font="calibri 11 italic")]])
-    title = kwargs.get("title") or "cleversession"
+    title = kwargs.get("title") or "CleverUtils"
     window = sg.Window(title, layout, keep_on_top=True, element_justification="center")
     event, _ = window.read()
     window.close()
@@ -56,3 +58,13 @@ def text_input(prompt, **kwargs):
         kwargs.update({"password_char": "*"})
     kwargs['default_text'] = kwargs.get('default_text') or ""
     return sg.popup_get_text(prompt, **kwargs)
+
+def get_folder(prompt, **kwargs):
+    """
+    Presents a general purpose prompt for folder selection using PySimpleGUI.
+    Returns the selected folder, or None if closed with Cancel or X.
+    """
+    global sg_options
+    kwargs.update(sg_options)
+    return sg.popup_get_folder(prompt, default_path=kwargs.get("default_path"))
+

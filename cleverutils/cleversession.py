@@ -95,14 +95,22 @@ class CleverSession(CleverDict):
             keyring.set_password(CleverSession.choices[self.url], self.username, value)
 
     def delete_password(self):
-        """ Delete password from keyring """
+        """
+        Delete password AND username from keyring.
+        .username remains in memory but .password was only ever an @property.
+        """
         keyring.delete_password(CleverSession.choices[self.url], self.username)
 
     @timer
-    def login_with_webbrowser(self):
+    def login_with_webbrowser(self, **kwargs):
+        """
+        KWARGS:
+
+        wait : Seconds for selenium to implicitly_wait
+        """
         self.check_and_prompt("url", "username", "password")
         self.browser = webdriver.Chrome()
-        self.browser.implicitly_wait(3)
+        self.browser.implicitly_wait(kwargs.get("wait") or 3)
         self.browser.get(self.url)
         dispatch = {"github.com": Login_to.github,
                     "twitter.com": Login_to.twitter,

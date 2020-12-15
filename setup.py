@@ -7,7 +7,7 @@ from setuptools import setup
 
 NAME = "cleverutils"
 GITHUB_USERNAME = "Pfython"
-VERSION = "0.11"
+VERSION = "0.12"
 DESCRIPTION = "Some handy Python utilities and code snippets used repeatedly by the author and considered beginner to intermediate level of difficulty.  Published just in case they're of use to other Pythonistas somehwere, some time."
 LICENSE = "MIT License"
 AUTHOR = "Peter Fison"

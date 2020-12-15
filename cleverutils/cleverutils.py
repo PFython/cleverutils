@@ -1,8 +1,17 @@
 
 """
-A collection of high level functions, classes, and methods based on the CleverDict data class and tailored to the author's current level and style of Python coding.
+A collection of high level functions, classes, and methods tailored to the author's current level and style of Python coding.
 """
 import time
+import json
+from pathlib import Path
+import inspect
+
+def get_time(time_format="numeric"):
+    """ Returns the local time in a predefined format """
+    if time_format == "numeric":
+        # 12 digit, all numeric.  Useful as a concise timestamp
+        return time.strftime("%Y%m%d%H%M", time.localtime())
 
 def to_json(self, never_save = False, **kwargs):
     """
@@ -18,9 +27,13 @@ def to_json(self, never_save = False, **kwargs):
     * at which point this function will be redundant.
     """
     # .get_aliases finds attributes created after __init__:
-    fields_dict = {key: self.get(key) for key in self.get_aliases()}
+    fields_dict = {k: self.get(k) for k in self.get_aliases()}
     if never_save:
-        fields_dict = {k:v for k,v in fields_dict if k not in never_save}
+        fields_dict = {k: v for k,v in fields_dict.items() if k not in never_save}
+    # JSON can't serialise Path objects, so convert to str
+    for k,v in fields_dict.items():
+        if isinstance(v, Path):
+            fields_dict[k] = str(v)
     json_str = json.dumps(fields_dict, indent=4)
     path = kwargs.get("file")
     if path:
@@ -31,6 +44,7 @@ def to_json(self, never_save = False, **kwargs):
         ids = [k for k, v in frame.items() if v is self]
         id = ids[0] if len(ids) == 1 else "/".join(ids)
         print(f"\n ⓘ  Saved '{id}' in JSON format to:\n    {path.absolute()}")
+        print()
     return json_str
 
 def timer(func):
