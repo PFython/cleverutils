@@ -15,7 +15,7 @@ EMAIL = "peter@southwestlondon.tv"
 URL = "https://github.com/Pfython/cleverutils"
 KEYWORDS = "cleverutils utils, cleverdict, cleversession, selenium, keyring, pysimplegui"
 CLASSIFIERS = "Development Status :: 3 - Alpha, Intended Audience :: Developers, Operating System :: OS Independent, Programming Language :: Python :: 3.6, Programming Language :: Python :: 3.7, Programming Language :: Python :: 3.8, Programming Language :: Python :: 3.9, Topic :: Internet :: WWW/HTTP :: Browsers, Topic :: Internet :: WWW/HTTP :: Session, Topic :: Utilities"
-REQUIREMENTS = "cleverdict, pysimplegui, selenium, pyperclip"
+REQUIREMENTS = "cleverdict, pysimplegui, selenium, keyring, pyperclip"
 
 
 def comma_split(text: str):
