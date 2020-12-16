@@ -15,6 +15,7 @@ import keyring
 from .clevergui import start_gui, button_menu, text_input
 from .cleverutils import to_json, timer
 from .cleverwebutils import Login_to
+import threading
 
 class CleverSession(CleverDict):
     """
@@ -102,23 +103,34 @@ class CleverSession(CleverDict):
         keyring.delete_password(CleverSession.choices[self.url], self.username)
 
     @timer
-    def login_with_webbrowser(self, **kwargs):
+    def login_with_webbrowsers(self, **kwargs):
         """
         KWARGS:
 
         wait : Seconds for selenium to implicitly_wait
+        browsers : int > number of browsers to run concurrently
         """
         self.check_and_prompt("url", "username", "password")
-        self.browser = webdriver.Chrome()
-        self.browser.implicitly_wait(kwargs.get("wait") or 3)
-        self.browser.get(self.url)
+        if not hasattr(self, "browsers"):
+            self.browsers = []
+        for n in range(kwargs.get("browsers") or 1):
+            self.browsers += [webdriver.Chrome()]
         dispatch = {"github.com": Login_to.github,
                     "twitter.com": Login_to.twitter,
                     "satchelone.com": Login_to.satchelone}
-        for website, func in dispatch.items():
-            if website in self.url:
-                func(self)
-                break
+        browserThreads = []
+        for browser in self.browsers:
+            browser.implicitly_wait(kwargs.get("wait") or 3)
+            for website, func in dispatch.items():
+                if website in self.url:
+                    browserThread = threading.Thread(target=func, args=[self, browser])
+                    browserThreads.append(browserThread)
+                    browserThread.start()
+                    break
+        for browserThread in browserThreads:
+                browserThread.join()
+        self.browser = self.browsers[0]
+
 
     def save(self, name, value):
         """ Generic auto-save confirmation applied CleverDict """

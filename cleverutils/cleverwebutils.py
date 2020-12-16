@@ -12,43 +12,56 @@ class Login_to:
     """
     @staticmethod
     @timer
-    def github(self):
+    def github(self, browser=None):
         """ Use selenium and CleverSession credentials to login to Github """
-        self.browser.find_element_by_id("login_field").send_keys(self.username)
-        self.browser.find_element_by_id("password").send_keys(self.password)
-        self.browser.find_element_by_name("commit").click()
+        if browser is None:
+                browser = self.browser
+        browser.get(self.url)
+        browser.find_element_by_id("login_field").send_keys(self.username)
+        browser.find_element_by_id("password").send_keys(self.password)
+        browser.find_element_by_name("commit").click()
 
     @staticmethod
     @timer
-    def twitter():
+    def twitter(self, browser=None):
         """ Use selenium and CleverSession credentials to login to Github """
-        self.browser.find_element_by_name("session[username_or_email]").send_keys(self.username)
-        self.browser.find_element_by_name("session[password]").send_keys(self.password)
+        if browser is None:
+                browser = self.browser
+        browser.get(self.url)
+        browser.find_element_by_name("session[username_or_email]").send_keys(self.username)
+        browser.find_element_by_name("session[password]").send_keys(self.password)
         span = self.browser.find_elements_by_tag_name("span")
         [x for x in span if x.text=="Log in"][0].click()
 
     @staticmethod
     @timer
-    def office365(self):
+    def office365(self, browser=None):
         """ Use selenium and CleverSession credentials to login to Office365 """
-        self.browser.find_element_by_id("i0116").send_keys(self.username)
-        self.browser.find_element_by_id("idSIButton9").click()
-        self.browser.find_element_by_id("i0118").send_keys(self.password)
+        if browser is None:
+                browser = self.browser
+        browser.get(self.url)
+        browser.find_element_by_id("i0116").send_keys(self.username)
+        browser.find_element_by_id("idSIButton9").click()
+        browser.find_element_by_id("i0118").send_keys(self.password)
         time.sleep(2)
-        self.browser.find_element_by_id("idSIButton9").click()
+        browser.find_element_by_id("idSIButton9").click()
 
-    @staticmethod
     @timer
-    def satchelone(self):
-        """ Use selenium and CleverSession credentials to login to SatchelOne """
+    @staticmethod
+    def satchelone(self, browser=None):
+        """ Use selenium and CleverSession credentials to login to SatchelOne
+        """
+        if browser is None:
+            browser = self.browser
         # from satchelone_config import userid, pw
-        main_window = self.browser.window_handles[0]
-        span = self.browser.find_elements_by_tag_name("span")
+        browser.get(self.url)
+        main_window = browser.window_handles[0]
+        span = browser.find_elements_by_tag_name("span")
         [x for x in span if x.text=="Sign in with Office 365"][0].click()
-        popup_window = self.browser.window_handles[1]
-        self.browser.switch_to.window(popup_window)
+        popup_window = browser.window_handles[1]
+        browser.switch_to.window(popup_window)
         Office365()
-        self.browser.switch_to.window(main_window)
+        browser.switch_to.window(main_window)
         print("\n ⓘ  Waiting for SatchelOne dashboard to appear...")
         while browser.current_url != 'https://www.satchelone.com/dashboard':
             continue

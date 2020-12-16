@@ -6,6 +6,7 @@ import time
 import json
 from pathlib import Path
 import inspect
+from itertools import islice
 
 def get_time(time_format="numeric"):
     """ Returns the local time in a predefined format """
@@ -59,3 +60,47 @@ def timer(func):
         print(f"\n ⏱  Function {func.__name__!r} took {round(time.perf_counter()-start,2)} seconds to complete.\n")
         return (data)
     return wrapper
+
+def list_batches(data, **kwargs):
+    """ Yields a sublist with batch_size values.
+
+    kwargs:
+    batch_size : Maximum size of any sublist returned; last sublist may be less.
+    browsers: Number of browers, to run; Calculate batch_size accordingly
+
+    x = list_batches(data)
+    try:
+        while True:
+            sublist = next(x)
+            do_stuff(sublist)
+    except StopIteration:
+        pass
+    finally:
+        del iterator
+    """
+    batch_size = kwargs.get("batch_size")
+    if not batch_size:
+        batch_size = len(data) // (kwargs.get("browsers") or 5)
+        if len(data) % batch_size:  # positive remainder
+            batch_size+=1
+    it = iter(data)
+    for i in range(0, len(data), batch_size):
+        yield (x for x in islice(it, batch_size))
+
+def dict_batches(data, batch_size=10):
+    """ Yields a subdictionary with batch_size keys.
+
+    x = dict_batches(data)
+    try:
+        while True:
+            subdict = next(x)
+            do_stuff(subdict)
+    except StopIteration:
+        pass
+    finally:
+        del iterator
+    """
+    it = iter(data)
+    for i in range(0, len(data), batch_size):
+        yield {k:data[k] for k in islice(it, batch_size)}
+
