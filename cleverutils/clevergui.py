@@ -3,7 +3,7 @@ A collection of commonly high level functions based on PysSimpleGUI and tailored
 """
 import PySimpleGUI as sg
 
-sg_options = {"title": "CleverUtils", "keep_on_top": True}
+sg_options = {"title": "CleverUtils", "keep_on_top": True, "icon": "../cleverutils.ico"}
 
 def start_gui(*args, **kwargs):
     """
@@ -42,6 +42,7 @@ def button_menu(choices: iter, prompt=None, **kwargs):
                 for url in choices])
     layout.extend([[sg.Text("You can use Tab & Space to navigate", font="calibri 11 italic")]])
     title = kwargs.get("title") or "CleverUtils"
+    del kwargs['title']
     window = sg.Window(title, layout, keep_on_top=True, element_justification="center")
     event, _ = window.read()
     window.close()
@@ -67,4 +68,20 @@ def get_folder(prompt, **kwargs):
     global sg_options
     kwargs.update(sg_options)
     return sg.popup_get_folder(prompt, default_path=kwargs.get("default_path"))
+
+def progress_bar(prompt, **kwargs):
+    """ Returns a PySimpleGUI window object that can be dynamically updated e.g.
+
+    window['progress'].update(1, 5)
+    window['progress_text'].update("some text")
+    """
+    global sg_options
+    kwargs.update(sg_options)
+    title = kwargs.get("title") or "CleverUtils"
+    del kwargs['title']
+    layout = [[sg.Text(prompt, key="progress_text")],
+        [sg.ProgressBar(1, orientation=kwargs.get("orientation") or 'h', size=(kwargs.get("height") or 20, kwargs.get("width") or 20), key='progress')],
+        ]
+    window = sg.Window(title, layout, **kwargs).Finalize()
+    return window
 

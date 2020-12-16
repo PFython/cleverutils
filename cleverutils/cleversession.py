@@ -113,15 +113,15 @@ class CleverSession(CleverDict):
         """
         self.check_and_prompt("url", "username", "password")
         if not hasattr(self, "browsers"):
-            self.setattr_direct(browsers, [])
+            self.browsers = []
         dispatch = {"github.com": Login_to.github,
                     "twitter.com": Login_to.twitter,
                     "satchelone.com": Login_to.satchelone}
         browserThreads = []
         if browsers is None:
             browsers = self.get("max_browsers") or 1
-        browsers -= len(self.browsers)
-        # TODO: Check: Main browser may already be running?
+        # Adjust if main browser is already be running:
+        browsers = browsers - len(self.browsers)
         for n in  range(browsers):
             for website, func in dispatch.items():
                 if website in self.url:
@@ -134,7 +134,7 @@ class CleverSession(CleverDict):
 
     def save(self, name, value):
         """ Generic auto-save confirmation applied CleverDict """
-        if "password" not in str(name).lower():
+        if "password" not in str(name).lower() and name != "browsers":
             print(f" ⓘ  {name} = {value} {type(value)}")
 
     def start(self):
