@@ -40,13 +40,14 @@ class CleverSession(CleverDict):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        start_gui()
+        start_gui(redirect=kwargs.get("redirect"))
         self.check_and_prompt("url")
         if self.get("url"):
             self.account = CleverSession.choices[self.url]
             self.get_username()
         if not self.get("dirpath"):
             self.dirpath = Path().cwd()
+        self.max_browsers = 5
 
     def get_username(self):
         """
@@ -103,7 +104,7 @@ class CleverSession(CleverDict):
         keyring.delete_password(CleverSession.choices[self.url], self.username)
 
     @timer
-    def login_with_webbrowsers(self, **kwargs):
+    def login_with_webbrowsers(self, browsers=None):
         """
         KWARGS:
 
@@ -112,25 +113,24 @@ class CleverSession(CleverDict):
         """
         self.check_and_prompt("url", "username", "password")
         if not hasattr(self, "browsers"):
-            self.browsers = []
-        for n in range(kwargs.get("browsers") or 1):
-            self.browsers += [webdriver.Chrome()]
+            self.setattr_direct(browsers, [])
         dispatch = {"github.com": Login_to.github,
                     "twitter.com": Login_to.twitter,
                     "satchelone.com": Login_to.satchelone}
         browserThreads = []
-        for browser in self.browsers:
-            browser.implicitly_wait(kwargs.get("wait") or 3)
+        if browsers is None:
+            browsers = self.get("max_browsers") or 1
+        browsers -= len(self.browsers)
+        # TODO: Check: Main browser may already be running?
+        for n in  range(browsers):
             for website, func in dispatch.items():
                 if website in self.url:
-                    browserThread = threading.Thread(target=func, args=[self, browser])
+                    browserThread = threading.Thread(target=func, args=[self])
                     browserThreads.append(browserThread)
                     browserThread.start()
                     break
         for browserThread in browserThreads:
                 browserThread.join()
-        self.browser = self.browsers[0]
-
 
     def save(self, name, value):
         """ Generic auto-save confirmation applied CleverDict """
@@ -141,5 +141,7 @@ class CleverSession(CleverDict):
         """ Shortcut/Alias for starting a webbrowser session and logging in """
         self.login_with_webbrowser()
 
+
+# setattr(CleverSession, "login_with_webbrowsers", login_with_webbrowsers)
 # self= CleverSession()
 # self.start()
