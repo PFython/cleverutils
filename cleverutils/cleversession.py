@@ -113,7 +113,7 @@ class CleverSession(CleverDict):
         """
         self.check_and_prompt("url", "username", "password")
         if not hasattr(self, "browsers"):
-            self.browsers = []
+            self.setattr_direct("browsers", [])
         dispatch = {"github.com": Login_to.github,
                     "twitter.com": Login_to.twitter,
                     "satchelone.com": Login_to.satchelone}
@@ -134,7 +134,9 @@ class CleverSession(CleverDict):
 
     def save(self, name, value):
         """ Generic auto-save confirmation applied CleverDict """
-        if "password" not in str(name).lower() and name != "browsers":
+        if "password" not in str(name).lower() and name not in vars(self):
+            # vars(self) includes CleverDict keys created with setattr_direct()
+            # i.e. not intended to be readily accessible as data attributes
             print(f" ⓘ  {name} = {value} {type(value)}")
 
     def start(self):

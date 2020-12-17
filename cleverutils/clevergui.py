@@ -69,19 +69,24 @@ def get_folder(prompt, **kwargs):
     kwargs.update(sg_options)
     return sg.popup_get_folder(prompt, default_path=kwargs.get("default_path"))
 
-def progress_bar(prompt, **kwargs):
+def progress_bar(prompt="", **kwargs):
     """ Returns a PySimpleGUI window object that can be dynamically updated e.g.
 
-    window['progress'].update(1, 5)
-    window['progress_text'].update("some text")
+    window['progress_r'].update(1, 5)
+    window['progress_text'].update("Page 1 of 10")
+    window['progress_item'].update("Currently working on this")
     """
     global sg_options
     kwargs.update(sg_options)
     title = kwargs.get("title") or "CleverUtils"
     del kwargs['title']
-    layout = [[sg.Text(prompt, key="progress_text")],
-        [sg.ProgressBar(1, orientation=kwargs.get("orientation") or 'h', size=(kwargs.get("height") or 20, kwargs.get("width") or 20), key='progress')],
+    # Bug in PySimpleGUI with proportional fonts means text updates don't
+    # always display fully.  size= is therefore required
+    layout = [[sg.Text(" "*40, key="progress_text", size=(30,1))],
+            [sg.Text(" "*40, key="progress_item", size=(30,1))],
+        [sg.ProgressBar(1, orientation=kwargs.get("orientation") or 'h', size=(kwargs.get("height") or 30, kwargs.get("width") or 15), key='progress_bar')],
         ]
     window = sg.Window(title, layout, **kwargs).Finalize()
+    window['progress_text'].update(prompt)
     return window
 
