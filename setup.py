@@ -7,15 +7,15 @@ from setuptools import setup
 
 NAME = "cleverutils"
 GITHUB_USERNAME = "Pfython"
-VERSION = "0.21"
+VERSION = "0.22.1a1"
 DESCRIPTION = "Some handy Python utilities and code snippets used repeatedly by the author and considered beginner to intermediate level of difficulty.  Published just in case they're of use to other Pythonistas somehwere, some time."
 LICENSE = "MIT License"
 AUTHOR = "Peter Fison"
 EMAIL = "peter@southwestlondon.tv"
 URL = "https://github.com/Pfython/cleverutils"
 KEYWORDS = "cleverutils utils, cleverdict, cleversession, selenium, keyring, pysimplegui"
-CLASSIFIERS = "Development Status :: 3 - Alpha, Intended Audience :: Developers, Operating System :: OS Independent, Programming Language :: Python :: 3.6, Programming Language :: Python :: 3.7, Programming Language :: Python :: 3.8, Programming Language :: Python :: 3.9, Topic :: Internet :: WWW/HTTP :: Browsers, Topic :: Internet :: WWW/HTTP :: Session, Topic :: Utilities"
-REQUIREMENTS = "cleverdict, pysimplegui, selenium, keyring, pyperclip"
+CLASSIFIERS = "Development Status :: 2 - Pre-Alpha, Intended Audience :: Developers, Operating System :: OS Independent, Programming Language :: Python :: 3.6, Programming Language :: Python :: 3.7, Programming Language :: Python :: 3.8, Programming Language :: Python :: 3.9, Topic :: Communications, Topic :: Communications :: Email, Topic :: Internet, Topic :: Internet :: WWW/HTTP, Topic :: Internet :: WWW/HTTP :: Browsers, Topic :: Internet :: WWW/HTTP :: Indexing/Search, Topic :: Internet :: WWW/HTTP :: Session, Topic :: Software Development, Topic :: Software Development :: Build Tools, Topic :: Software Development :: Libraries :: Python Modules, Topic :: Software Development :: Object Brokering, Topic :: Software Development :: User Interfaces, Topic :: Software Development :: Version Control, Topic :: System :: Archiving :: Backup, Topic :: System :: Archiving :: Packaging, Topic :: System :: Installation/Setup, Topic :: System :: Networking, Topic :: System :: Software Distribution, Topic :: Utilities, License :: OSI Approved :: MIT License"
+REQUIREMENTS = "cleverdict, cleversession, cleverweb, clevergui, keyring, pyperclip, easypypi, selenium, "
 
 
 def comma_split(text: str):

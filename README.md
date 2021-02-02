@@ -14,12 +14,12 @@ Some handy Python utilities and code snippets (beginner to intermediate level) u
 To access the main Session/Login/Scraper classes:
 
     >>> from cleverutils import CleverSession, Login_to
-    >>> cs = CleverSession()
+    >>> cs = CleverSession(echo=True)
     >>> cs.start()
 
 To access individual functions in `clevergui`:
 
-    >>> from cleverutils import start_gui, button_menu, text_input
+    >>> from cleverutils import start_gui, button_menu, text_input, get_folder, progress_bar
 
 `start_gui`, `button_menu`, and `text_input` are simply wrappers around frequently used `PySimpleGUI` functions using a predefined "house style".
 

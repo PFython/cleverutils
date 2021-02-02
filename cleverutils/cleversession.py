@@ -6,15 +6,12 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 import webbrowser
-from pathlib import Path
-from cleverdict import CleverDict
 import pyperclip
-import inspect
-import json
+from pathlib import Path
 import keyring
-from .clevergui import start_gui, button_menu, text_input
-from .cleverutils import to_json, timer
-from .cleverwebutils import Login_to
+from .clevergui import *
+from .cleverweb import *
+from .cleverutils import *
 import threading
 
 class CleverSession(CleverDict):
@@ -39,6 +36,7 @@ class CleverSession(CleverDict):
     keyring_data_root = keyring.util.platform_.data_root()
 
     def __init__(self, **kwargs):
+        options, kwargs = self.get_options_from_kwargs(**kwargs)
         super().__init__(**kwargs)
         start_gui(redirect=kwargs.get("redirect"))
         self.check_and_prompt("url")
@@ -48,6 +46,21 @@ class CleverSession(CleverDict):
         if not self.get("dirpath"):
             self.dirpath = Path().cwd()
         self.max_browsers = 5
+        if kwargs.get("echo") is True:
+            setattr(CleverSession, "save", CleverSession.echo_on)
+        if kwargs.get("echo") is False:
+            setattr(CleverSession, "save", CleverSession.echo_off)
+
+    def get_options_from_kwargs(self, **kwargs):
+        """ Separate actionable options from general data in kwargs."""
+        options = {}
+        for key, default_value in {"echo": True, "_break": False, "redirect": False}.items():
+            if isinstance(kwargs.get(key), bool):
+                options[key] = kwargs.get(key)
+                del kwargs[key]
+            else:
+                options[key] = default_value
+        return options, kwargs
 
     def get_username(self):
         """
@@ -111,33 +124,48 @@ class CleverSession(CleverDict):
         wait : Seconds for selenium to implicitly_wait
         browsers : int > number of browsers to run concurrently
         """
-        self.check_and_prompt("url", "username", "password")
-        if not hasattr(self, "browsers"):
-            self.setattr_direct("browsers", [])
-        dispatch = {"github.com": Login_to.github,
-                    "twitter.com": Login_to.twitter,
-                    "satchelone.com": Login_to.satchelone}
-        browserThreads = []
-        if browsers is None:
-            browsers = self.get("max_browsers") or 1
-        # Adjust if main browser is already be running:
-        browsers = browsers - len(self.browsers)
-        for n in  range(browsers):
-            for website, func in dispatch.items():
-                if website in self.url:
-                    browserThread = threading.Thread(target=func, args=[self])
-                    browserThreads.append(browserThread)
-                    browserThread.start()
-                    break
-        for browserThread in browserThreads:
-                browserThread.join()
+        try:
+            self.check_and_prompt("url", "username", "password")
+            if not hasattr(self, "browsers"):
+                self.setattr_direct("browsers", [])
+            dispatch = {"github.com": Login_to.github,
+                        "twitter.com": Login_to.twitter,
+                        "satchelone.com": Login_to.satchelone}
+            browserThreads = []
+            if browsers is None:
+                browsers = self.get("max_browsers") or 1
+            # Adjust if main browser is already be running:
+            browsers = browsers - len(self.browsers)
+            for n in  range(browsers):
+                for website, func in dispatch.items():
+                    if website in self.url:
+                        browserThread = threading.Thread(target=func, args=[self])
+                        browserThreads.append(browserThread)
+                        browserThread.start()
+                        break
+            for browserThread in browserThreads:
+                    browserThread.join()
+        except WebDriverException:
+            raise WebDriverException("Check chromdriver is in your PATH or you're running this code from a directory with chromedriver.exe in it")
 
-    def save(self, name, value):
-        """ Generic auto-save confirmation applied CleverDict """
+    def echo_on(self, name, value):
+        """
+        Generic confirmation applied CleverDict auto-save with:
+
+        setattr(CleverSession, "save", CleverSession.echo_on)
+        """
         if "password" not in str(name).lower() and name not in vars(self):
             # vars(self) includes CleverDict keys created with setattr_direct()
             # i.e. not intended to be readily accessible as data attributes
             print(f" ⓘ  {name} = {value} {type(value)}")
+
+    def echo_off(self, name, value):
+        """
+        Disable CleverSession autosave confirmations with:
+
+        setattr(CleverSession, "save", CleverSession.echo_off)
+        """
+        pass
 
     def start(self):
         """ Shortcut/Alias for starting a webbrowser session and logging in """

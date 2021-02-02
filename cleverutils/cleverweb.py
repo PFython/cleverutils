@@ -1,4 +1,3 @@
-from .cleverutils import timer
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import WebDriverException
@@ -24,7 +23,7 @@ class Login_to:
     .password : typically a CleverSession @property based on keyring
     """
     @staticmethod
-    @timer
+
     def github(self, browser=None, **kwargs):
         """ Use selenium and CleverSession credentials to login to Github """
         if browser is None:
@@ -39,7 +38,7 @@ class Login_to:
         self.browsers += [browser]
 
     @staticmethod
-    @timer
+
     def twitter(self, browser=None, **kwargs):
         """ Use selenium and CleverSession credentials to login to Github """
         if browser is None:
@@ -55,7 +54,7 @@ class Login_to:
         self.browsers += [browser]
 
     @staticmethod
-    @timer
+
     def office365(self, browser=None, **kwargs):
         """ Use selenium and CleverSession credentials to login to Office365 """
         if browser is None:
@@ -71,7 +70,7 @@ class Login_to:
             self.browsers = []
         self.browsers += [browser]
 
-    @timer
+
     @staticmethod
     def satchelone(self, browser=None, **kwargs):
         """ Use selenium and CleverSession credentials to login to SatchelOne
