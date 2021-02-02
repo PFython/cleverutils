@@ -61,4 +61,6 @@ class Test_timer:
             example()
         assert "Function 'example' took 1." in caplog.text
 
-
+class Test_YouTube:
+    def test_yt_time(self):
+        assert yt_time("P1W2DT6H21M32S") == 22892
