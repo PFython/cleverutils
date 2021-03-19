@@ -61,6 +61,40 @@ class Test_timer:
             example()
         assert "Function 'example' took 1." in caplog.text
 
-class Test_YouTube:
+class Test_Converters:
     def test_yt_time(self):
         assert yt_time("P1W2DT6H21M32S") == 22892
+
+    def test_format_bytes(self):
+        assert format_bytes(1,"b") == '8 b'
+        assert format_bytes(1,"bits") == '8 bits'
+        assert format_bytes(1024, "kilobyte") == "1 Kilobyte"
+        assert format_bytes(1024, "kB") == "1 KB"
+        assert format_bytes(7141000, "mb") == '54 Mb'
+        assert format_bytes(7141000, "mib") == '54 Mib'
+        assert format_bytes(7141000, "Mb") == '54 Mb'
+        assert format_bytes(7141000, "MB") == '7 MB'
+        assert format_bytes(7141000, "mebibytes") == '7 Mebibytes'
+        assert format_bytes(7141000, "gb") == '0 Gb'
+        assert format_bytes(1000000, "kB") == '977 KB'
+        assert format_bytes(1000000, "kB", SI=True) == '1,000 KB'
+        assert format_bytes(1000000, "kb") == '7,812 Kb'
+        assert format_bytes(1000000, "kb", SI=True) == '8,000 Kb'
+        assert format_bytes(125000, "kb") == '977 Kb'
+        assert format_bytes(125000, "kb", SI=True) == '1,000 Kb'
+        assert format_bytes(125*1024, "kb") == '1,000 Kb'
+        assert format_bytes(125*1024, "kb", SI=True) == '1,024 Kb'
+
+    def test_get_path_size(self):
+        def first_item(paths):
+            return [x for x in paths if not x.name.startswith(".")][0]
+        dirp = first_item([x for x in Path().glob("*") if x.is_dir()])
+        filep = first_item([x for x in dirp.glob("*") if x.is_file()])
+        assert dirp.is_dir()
+        assert filep.is_file()
+        assert filep in dirp.glob("*")
+        assert get_path_size(filep) > 0
+        assert get_path_size(dirp) > 0
+        assert get_path_size(dirp, recursive=True) > get_path_size(dirp)
+        assert get_path_size(dirp, recursive=True) > get_path_size(dirp)
+

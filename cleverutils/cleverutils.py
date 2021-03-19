@@ -16,7 +16,7 @@ except:
     from cleverdict.cleverdict import CleverDict
 from cleverdict.cleverdict import get_app_dir
 import os
-import logging
+# import logging
 import re
 
 INSTALL_PATH = Path(__file__).parent.parent
@@ -37,19 +37,16 @@ def timer(func):
     """
     def wrapper(*args, **kwargs):
         file_path = Path(get_app_dir("cleverutils")) / "timer_logs.txt"
-        try:
-            os.makedirs(file_path.parent)
-        except FileExistsError:
-            pass
+        file_path.mkdir(exist_ok=True)
         if not file_path.is_file():
             file_path.touch()
-        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s|%(levelname)s|%(message)s', filename=file_path,)
+        # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s|%(levelname)s|%(message)s', filename=file_path,)
         # List of available options here:
         # https://docs.python.org/3/library/logging.html#logrecord-attributes
         print(f"\n ⓘ  Timings logged to:\n    {file_path}")
         start = time.perf_counter()
         data = func(*args, **kwargs)
-        logging.info(f"Function {func.__name__!r} took {round(time.perf_counter()-start,2)} seconds to complete.")
+        # logging.info(f"Function {func.__name__!r} took {round(time.perf_counter()-start,2)} seconds to complete.")
         return (data)
     return wrapper
 
@@ -197,19 +194,101 @@ def yt_time(duration):
     see http://en.wikipedia.org/wiki/ISO_8601#Durations
     """
     ISO_8601 = re.compile(
-        'P'   # designates a period
-        '(?:(?P<years>\d+)Y)?'   # years
-        '(?:(?P<months>\d+)M)?'  # months
-        '(?:(?P<weeks>\d+)W)?'   # weeks
-        '(?:(?P<days>\d+)D)?'    # days
-        '(?:T' # time part must begin with a T
-        '(?:(?P<hours>\d+)H)?'   # hours
-        '(?:(?P<minutes>\d+)M)?' # minutes
-        '(?:(?P<seconds>\d+)S)?' # seconds
-        ')?')   # end of time part
+        r'P'   # designates a period
+        r'(?:(?P<years>\d+)Y)?'   # years
+        r'(?:(?P<months>\d+)M)?'  # months
+        r'(?:(?P<weeks>\d+)W)?'   # weeks
+        r'(?:(?P<days>\d+)D)?'    # days
+        r'(?:T' # time part must begin with a T
+        r'(?:(?P<hours>\d+)H)?'   # hours
+        r'(?:(?P<minutes>\d+)M)?' # minutes
+        r'(?:(?P<seconds>\d+)S)?' # seconds
+        r')?')   # end of time part
     # Convert regex matches into a short list of time units
     units = list(ISO_8601.match(duration).groups()[-3:])
     # Put list in ascending order & remove 'None' types
     units = list(reversed([int(x) if x != None else 0 for x in units]))
     # Do the maths
     return sum([x*60**units.index(x) for x in units])
+
+def get_path_size(path = Path('.'), recursive=False):
+    """
+    Gets file size, or total directory size
+
+    Parameters
+    ----------
+    path: str | pathlib.Path
+        File path or directory/folder path
+
+    recursive: bool
+        True -> use .rglob i.e. include nested files and directories
+        False -> use .glob i.e. only process current directory/folder
+
+    Returns
+    -------
+    int:
+        File size or recursive directory size in bytes
+        Use cleverutils.format_bytes to convert to other units e.g. MB
+    """
+    path = Path(path)
+    if path.is_file():
+        size = path.stat().st_size
+    elif path.is_dir():
+        path_glob = path.rglob('*.*') if recursive else path.glob('*.*')
+        size = sum(file.stat().st_size for file in path_glob)
+    return size
+
+def format_bytes(bytes, unit, SI=False):
+    """
+    Converts bytes to common units such as kb, kib, KB, mb, mib, MB
+
+    Parameters
+    ---------
+    bytes: int
+        Number of bytes to be converted
+
+    unit: str
+        Desired unit of measure for output
+
+
+    SI: bool
+        True -> Use SI standard e.g. KB = 1000 bytes
+        False -> Use JEDEC standard e.g. KB = 1024 bytes
+
+    Returns
+    -------
+    str:
+        E.g. "7 MiB" where MiB is the original unit abbreviation supplied
+    """
+    if unit.lower() in "b bit bits".split():
+        return f"{bytes*8} {unit}"
+    unitN = unit[0].upper()+unit[1:].replace("s","")  # Normalised
+    reference = {"Kb Kib Kibibit Kilobit": (7, 1),
+                 "KB KiB Kibibyte Kilobyte": (10, 1),
+                 "Mb Mib Mebibit Megabit": (17, 2),
+                 "MB MiB Mebibyte Megabyte": (20, 2),
+                 "Gb Gib Gibibit Gigabit": (27, 3),
+                 "GB GiB Gibibyte Gigabyte": (30, 3),
+                 "Tb Tib Tebibit Terabit": (37, 4),
+                 "TB TiB Tebibyte Terabyte": (40, 4),
+                 "Pb Pib Pebibit Petabit": (47, 5),
+                 "PB PiB Pebibyte Petabyte": (50, 5),
+                 "Eb Eib Exbibit Exabit": (57, 6),
+                 "EB EiB Exbibyte Exabyte": (60, 6),
+                 "Zb Zib Zebibit Zettabit": (67, 7),
+                 "ZB ZiB Zebibyte Zettabyte": (70, 7),
+                 "Yb Yib Yobibit Yottabit": (77, 8),
+                 "YB YiB Yobibyte Yottabyte": (80, 8),
+                 }
+    key_list = '\n'.join(["     b Bit"] + [x for x in reference.keys()]) +"\n"
+    if unitN not in key_list:
+        raise IndexError(f"\n\nConversion unit must be one of:\n\n{key_list}")
+    units, divisors = [(k,v) for k,v in reference.items() if unitN in k][0]
+    if SI:
+        divisor = 1000**divisors[1]/8 if "bit" in units else 1000**divisors[1]
+    else:
+        divisor = float(1 << divisors[0])
+    value = bytes / divisor
+    # if value != 1 and len(unitN) > 3:
+    #         unitN += "s" # Create plural unit of measure
+    return f"{value:,.0f} {unitN}{(value != 1 and len(unitN) > 3)*'s'}"

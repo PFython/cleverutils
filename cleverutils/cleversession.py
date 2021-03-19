@@ -5,6 +5,7 @@ from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.common.keys import Keys
 import webbrowser
 import pyperclip
 from pathlib import Path
@@ -31,7 +32,9 @@ class CleverSession(CleverDict):
     index = CleverDict()
     choices = {"https://github.com/login": "Github",
                "https://twitter.com": "Twitter",
-               "https://www.satchelone.com/login": "SatchelOne"}
+               "https://www.satchelone.com/login": "SatchelOne",
+               "https://www.hackerrank.com": "HackerRank",
+               "192.168.0.1": "TP-Link"}
     keyring_config_root = keyring.util.platform_.config_root()
     keyring_data_root = keyring.util.platform_.data_root()
 
@@ -42,14 +45,28 @@ class CleverSession(CleverDict):
         self.check_and_prompt("url")
         if self.get("url"):
             self.account = CleverSession.choices[self.url]
+            self.login_url = self.url
             self.get_username()
         if not self.get("dirpath"):
-            self.dirpath = Path().cwd()
+            self.dirpath_str = str(Path().cwd())
         self.max_browsers = 5
         if kwargs.get("echo") is True:
             setattr(CleverSession, "save", CleverSession.echo_on)
         if kwargs.get("echo") is False:
             setattr(CleverSession, "save", CleverSession.echo_off)
+        self.browser = kwargs.get("browser")
+        if not self.browser:
+            self.browser = webdriver.Chrome(options=disable_logging(**kwargs))
+        self.browser.implicitly_wait(kwargs.get("wait") or 3)
+
+    @property
+    def dirpath(self):
+        """
+        This @property returns a pathlib.Path version of .dirpath_str.
+        Needed in order to allow JSON serialisation without constant conversions
+        since pathlib.Path is not JSON serialisable.
+        """
+        return Path(self.dirpath_str)
 
     def get_options_from_kwargs(self, **kwargs):
         """ Separate actionable options from general data in kwargs."""
@@ -116,6 +133,12 @@ class CleverSession(CleverDict):
         """
         keyring.delete_password(CleverSession.choices[self.url], self.username)
 
+    def add_current_browser(self):
+        """Appends the current (login) browser to self.browsers"""
+        if not hasattr(self, "browsers"):
+            self.browsers = []
+        self.browsers += [self.browser]
+
     @timer
     def login_with_webbrowsers(self, browsers=None):
         """
@@ -130,7 +153,9 @@ class CleverSession(CleverDict):
                 self.setattr_direct("browsers", [])
             dispatch = {"github.com": Login_to.github,
                         "twitter.com": Login_to.twitter,
-                        "satchelone.com": Login_to.satchelone}
+                        "satchelone.com": Login_to.satchelone,
+                        "hackerrank.com": Login_to.hackerrank,
+                        "192.168.0.1": Login_to.tplink}
             browserThreads = []
             if browsers is None:
                 browsers = self.get("max_browsers") or 1
@@ -169,7 +194,7 @@ class CleverSession(CleverDict):
 
     def start(self):
         """ Shortcut/Alias for starting a webbrowser session and logging in """
-        self.login_with_webbrowser()
+        self.login_with_webbrowsers()
 
 
 # setattr(CleverSession, "login_with_webbrowsers", login_with_webbrowsers)

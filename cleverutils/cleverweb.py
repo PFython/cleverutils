@@ -15,82 +15,100 @@ def disable_logging(**kwargs):
 
 class Login_to:
     """
-    A collection of common login/scraper/collector functions for a variety of
-    websites.  Each receives a (CleverSession) object as its argument, typically comprising:
+    A collection of common login functions for a variety of websites.
+    Each receives a (CleverSession) object (self) as its argument, typically
+    comprising:
 
     .browser : a selenium webbrowswer object that has already been initialised
     .username : typically derived from CleverSession and keyring
     .password : typically a CleverSession @property based on keyring
+    .login_url : URL to provide login credentials to
+
+    the .add_current_browser() method appends the current (login) browser to
+    self.browsers list.
     """
-    @staticmethod
 
-    def github(self, browser=None, **kwargs):
-        """ Use selenium and CleverSession credentials to login to Github """
-        if browser is None:
-                browser = webdriver.Chrome(options=disable_logging(**kwargs))
-        browser.implicitly_wait(kwargs.get("wait") or 3)
-        browser.get(self.url)
-        browser.find_element_by_id("login_field").send_keys(self.username)
-        browser.find_element_by_id("password").send_keys(self.password)
-        browser.find_element_by_name("commit").click()
-        if not hasattr(self, "browsers"):
-            self.browsers = []
-        self.browsers += [browser]
 
     @staticmethod
+    def tplink(self, **kwargs):
+        """
+        Use selenium and CleverSession credentials to login to tplink modem
+        """
+        self.login_url = r"http://192.168.0.1/login.html"
+        self.browser.get(self.login_url)
+        self.browser.find_element_by_id("password").send_keys(self.password)
+        self.browser.find_element_by_id("loginBtn").click()
+        self.add_current_browser()
 
-    def twitter(self, browser=None, **kwargs):
+    @staticmethod
+    def hackerrank(self, **kwargs):
+        """ Use selenium and CleverSession credentials to login to HackerRank """
+        self.login_url = r"https://www.hackerrank.com/auth/login?h_l=body_middle_left_button&h_r=login"
+        self.browser.get(self.login_url)
+        self.browser.find_element_by_id("input-1").send_keys(self.username)
+        self.browser.find_element_by_id("input-2").send_keys(self.password)
+        self.browser.find_element_by_xpath('//*[@id="tab-1-content-1"]/div[1]/form/div[4]/button').click()
+        self.add_current_browser()
+
+
+    @staticmethod
+    def github(self, **kwargs):
         """ Use selenium and CleverSession credentials to login to Github """
-        if browser is None:
-                browser = webdriver.Chrome(options=disable_logging(**kwargs))
-        browser.implicitly_wait(kwargs.get("wait") or 3)
-        browser.get(self.url)
-        browser.find_element_by_name("session[username_or_email]").send_keys(self.username)
-        browser.find_element_by_name("session[password]").send_keys(self.password)
-        span = browser.find_elements_by_tag_name("span")
+        self.browser.get(self.login_url)
+        self.browser.find_element_by_id("login_field").send_keys(self.username)
+        self.browser.find_element_by_id("password").send_keys(self.password)
+        self.browser.find_element_by_name("commit").click()
+        self.add_current_browser()
+
+    @staticmethod
+    def twitter(self, **kwargs):
+        """ Use selenium and CleverSession credentials to login to Github """
+        self.browser.get(self.login_url)
+        self.browser.find_element_by_name("session[username_or_email]").send_keys(self.username)
+        self.browser.find_element_by_name("session[password]").send_keys(self.password)
+        span = self.browser.find_elements_by_tag_name("span")
         [x for x in span if x.text=="Log in"][0].click()
-        if not hasattr(self, "browsers"):
-            self.browsers = []
-        self.browsers += [browser]
+        self.add_current_browser()
 
     @staticmethod
-
-    def office365(self, browser=None, **kwargs):
+    def office365(self, **kwargs):
         """ Use selenium and CleverSession credentials to login to Office365 """
-        if browser is None:
-                browser = webdriver.Chrome(options=disable_logging(**kwargs))
-        browser.implicitly_wait(kwargs.get("wait") or 3)
-        browser.get(self.url)
-        browser.find_element_by_id("i0116").send_keys(self.username)
-        browser.find_element_by_id("idSIButton9").click()
-        browser.find_element_by_id("i0118").send_keys(self.password)
+        self.browser.get(self.login_url)
+        self.browser.find_element_by_id("i0116").send_keys(self.username)
+        self.browser.find_element_by_id("idSIButton9").click()
+        self.browser.find_element_by_id("i0118").send_keys(self.password)
         time.sleep(2)
-        browser.find_element_by_id("idSIButton9").click()
-        if not hasattr(self, "browsers"):
-            self.browsers = []
-        self.browsers += [browser]
+        self.browser.find_element_by_id("idSIButton9").click()
+        self.add_current_browser()
 
 
     @staticmethod
-    def satchelone(self, browser=None, **kwargs):
+    def satchelone(self, **kwargs):
         """ Use selenium and CleverSession credentials to login to SatchelOne
         """
-        if browser is None:
-            browser = webdriver.Chrome(options=disable_logging(**kwargs))
         # from satchelone_config import userid, pw
-        browser.implicitly_wait(kwargs.get("wait") or 3)
-        browser.get(self.url)
-        main_window = browser.window_handles[0]
-        span = browser.find_elements_by_tag_name("span")
+        self.browser.get(self.login_url)
+        main_window = self.browser.window_handles[0]
+        span = self.browser.find_elements_by_tag_name("span")
         [x for x in span if x.text=="Sign in with Office 365"][0].click()
-        popup_window = browser.window_handles[1]
-        browser.switch_to.window(popup_window)
+        popup_window = self.browser.window_handles[1]
+        self.browser.switch_to.window(popup_window)
         Login_to.office365()
-        browser.switch_to.window(main_window)
+        self.browser.switch_to.window(main_window)
         print("\n ⓘ  Waiting for SatchelOne dashboard to appear...")
-        while browser.current_url != 'https://www.satchelone.com/dashboard':
+        while self.browser.current_url != 'https://www.satchelone.com/dashboard':
             continue
         print("\n ✓  OK we're in!\n")
-        if not hasattr(self, "browsers"):
-            self.browsers = []
-        self.browsers += [browser]
+        self.add_current_browser()
+
+class Scrape:
+    """
+    A collection of common scraper/collector functions for a variety of
+    websites.  Each receives a (CleverSession) object (self) as its argument, typically comprising:
+
+    .browser : a selenium webbrowswer object that has already been initialised
+    """
+
+    @staticmethod
+    def tplink(self, **kwargs):
+        return
